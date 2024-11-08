@@ -24,7 +24,6 @@ public class GameRecord implements Comparable<GameRecord>{
         return this.score == ((GameRecord) other).score;
     }
 
-
     public int getScore() { //getter
         return score;
     }

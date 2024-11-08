@@ -7,44 +7,48 @@ import java.util.Random;
 import java.util.Scanner;
 
 public abstract class WOF extends Game{ // abstract class WOF which extends game
-    public String phrase;
-    public StringBuilder secret;
-    public String pastGuesses;
+    protected String phrase;
+    protected StringBuilder secret;
+    protected String pastGuesses;
+    protected int chances;
+    protected String incorrectGuesses;
+    protected ArrayList<WOFPlayer> players;
+    protected List<String> phraseList;
+    protected AllGamesRecord allRecords;
     protected ArrayList<String> usedPhrases;
-    private int chances = 5;
-    private String incorrectGuesses = "";
     private String id;
-
+    private int phraseIndex;
 
     public WOF() { // constructor
-        this.phrase = randomPhrase();
-        this.secret = generateHiddenPhrase(this.phrase);
+        this.players = players;
+        this.allRecords = new AllGamesRecord();
         this.pastGuesses = "";
-        this.usedPhrases = new ArrayList<String>(); // added used phrase list
-        this.chances = chances;
+        this.chances = 5;
+        this.incorrectGuesses = "";
+        this.phraseList = readFile();
+        this.id = id;
+        this.usedPhrases = new ArrayList<String>();
+        this.phraseIndex = 0;
     }
 
     public abstract GameRecord play(); // plays one game. To be implemented by subclasses.
 
     public abstract boolean playNext(); // checks if the next game should be played.
 
-    public String randomPhrase() {// Get the phrase from a file of phrases
-        List<String> phraseList = null;
-
+    public List<String> readFile() { // reads phrases from file and returns as a list
+        List<String> phrases = new ArrayList<>();
         try {
-            phraseList = Files.readAllLines(Paths.get("phrases.txt"));
+            phrases = Files.readAllLines(Paths.get("phrases.txt"));
         } catch (IOException e) {
-            System.out.println(e);
+            System.out.println("Error reading phrases file: " + e.getMessage());
         }
+        return phrases;
+    }
 
-        // Get a random phrase from the list
+    public String randomPhrase() { // seperated from original randomPhrase so that each call gets new phrase without reading file again
         Random rand = new Random();
-        int r = rand.nextInt(phraseList.size()); // bounded by size of phraseList
+        int r = rand.nextInt(3); // gets 0, 1, or 2
         String phrase = phraseList.get(r);
-        while (usedPhrases.contains(phrase)) { // added check repeat when fetching phrase
-            r = rand.nextInt();
-        }
-        usedPhrases.add(phrase);
         return phrase;
     }
 
@@ -86,15 +90,32 @@ public abstract class WOF extends Game{ // abstract class WOF which extends game
         return found;
     }
 
-    public AllGamesRecord playAll() { // plays a set of games and records results.
-        while (playNext()) {
-            GameRecord gameRecord = play();
-            allRecords.add(gameRecord);
+    public AllGamesRecord playAll() { // checks if human or ai player, then plays a set of games and records results.
+        printInstructions();
+        this.phrase = randomPhrase();
+        this.secret = generateHiddenPhrase(phrase);
+        while (!phraseList.isEmpty()) {
+            String phrase = randomPhrase();
+            this.phrase = phrase;
+            this.secret = generateHiddenPhrase(phrase);
+
+            if (players == null || players.isEmpty()) {
+                while (playNext()) {
+                    GameRecord record = play();
+                    allRecords.add(record);
+                }
+            } else {
+                for (WOFPlayer player : players) {
+                    player.reset();
+                    this.secret = generateHiddenPhrase(phrase);
+                    allRecords.add(play());
+                }
+            }
         }
         return allRecords;
     }
 
-    // Starts the game by printing instructions and running the main game loop
+    // placeholder/demonstration method for main
     private void startGame() {
         printInstructions();
         playGame();
@@ -107,7 +128,7 @@ public abstract class WOF extends Game{ // abstract class WOF which extends game
 //        System.out.println("Enter 1 letter at a time please! Only the first letter will be recognized.");
 //        System.out.println("Hidden phrase: " + secret);
 
-    // main game loop
+    // game execution
     public void playGame() {
         while (!secret.toString().equals(phrase)) {
             char g = getGuess();
@@ -127,7 +148,7 @@ public abstract class WOF extends Game{ // abstract class WOF which extends game
     }
 
     // processes the result of a guess
-    private void processGuess(char g) {
+    protected void processGuess(char g) {
         if (updateGuess(phrase, secret, g)) {
             System.out.println("Correct!");
             System.out.println("Current progress: " + secret);
@@ -141,13 +162,9 @@ public abstract class WOF extends Game{ // abstract class WOF which extends game
     }
 
     // prints game over message
-    private void gameOver() {
+    protected void gameOver() {
         System.out.println("Oops too many wrong guesses, game over!");
         System.out.println("<----Game Over---->");
-    }
-
-    public GameRecord getGameRecord(){
-        return new GameRecord(chances, id);
     }
 
 }

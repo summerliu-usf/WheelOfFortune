@@ -2,13 +2,12 @@ import java.util.Scanner;
 
 public class WOFUserGame extends WOF { // concrete implementation of WOF for human player
     private Scanner scanner;
-    private AllGamesRecord allRecords;
     private String id;
 
     public WOFUserGame() { // constructor
         super();
         this.scanner = new Scanner(System.in);
-        this.allRecords = new AllGamesRecord();
+        this.id = id;
     }
 
     @Override
@@ -29,7 +28,7 @@ public class WOFUserGame extends WOF { // concrete implementation of WOF for hum
     public GameRecord play() { // plays one game
         printInstructions();
         super.playGame();
-        return super.getGameRecord();
+        return new GameRecord(chances, id);
     }
 
     @Override
@@ -61,5 +60,8 @@ public class WOFUserGame extends WOF { // concrete implementation of WOF for hum
     public static void main(String[] args) {
         WOFUserGame wofUserGame = new WOFUserGame();
         wofUserGame.playAll();
+        System.out.println(wofUserGame.allRecords.highGameList(3));
+        System.out.println(wofUserGame.allRecords.average());
+
     }
 }

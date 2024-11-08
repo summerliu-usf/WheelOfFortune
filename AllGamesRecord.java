@@ -29,6 +29,8 @@ public class AllGamesRecord {
         return false;
     }
 
+
+
     public int average() {// returns the average score for all games added to the record
         int totalScore = 0;
         int totalGames = 0;
