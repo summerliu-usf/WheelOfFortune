@@ -6,19 +6,18 @@ public class WOFUserGame extends WOF { // concrete implementation of WOF for hum
 
     public WOFUserGame() { // constructor
         super();
-        this.scanner = new Scanner(System.in);
-        this.id = id;
+        this.scanner = new Scanner(System.in);// Initialize id to an empty string
     }
 
     @Override
     public boolean playNext() {  // checks if the next game should be played
-        System.out.println("Would you like to play another round? Enter 1 for another round");
+        System.out.println("Enter 1 to start a new round");
         String response = scanner.nextLine();
         if (response.indexOf('1') == -1) {
             System.out.println("Sad to see you go :( Here are your results: ");
             System.out.println(allRecords);
             System.out.println("Exiting...");
-            System.exit(0);
+            return false; // Return false instead of System.exit(0) for graceful exit
         }
         System.out.println("Starting a new round...");
         return true;
@@ -26,7 +25,6 @@ public class WOFUserGame extends WOF { // concrete implementation of WOF for hum
 
     @Override
     public GameRecord play() { // plays one game
-        printInstructions();
         super.playGame();
         return new GameRecord(chances, id);
     }
@@ -48,11 +46,13 @@ public class WOFUserGame extends WOF { // concrete implementation of WOF for hum
         System.out.println("Instructions: This is a hangman-like game but with a sentence.");
         System.out.print("Enter your name to keep a record of your score: ");
         id = scanner.nextLine();
-        if (allRecords.checkUser(id)) { // ui for existing vs. new users
+        if (allRecords.checkUser(id)) { // UI for existing vs. new users
             System.out.println("Hello again " + id + "! Welcome back.");
         } else {
             System.out.println("Okay " + id + ", let's start!");
         }
+        phrase = randomPhrase();
+        secret = generateHiddenPhrase(phrase);
         System.out.println("Enter 1 letter at a time please! Only the first letter will be recognized.");
         System.out.println("Hidden phrase: " + secret);
     }
@@ -62,6 +62,5 @@ public class WOFUserGame extends WOF { // concrete implementation of WOF for hum
         wofUserGame.playAll();
         System.out.println(wofUserGame.allRecords.highGameList(3));
         System.out.println(wofUserGame.allRecords.average());
-
     }
 }

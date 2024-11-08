@@ -1,86 +1,127 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Collections;
-import java.util.List;
 
 public class AllGamesRecord {
-    // keeps all game records and has series of methods
-    private HashMap<String, ArrayList<Integer>> records; // mistakingly thought that the AIs were supposed to play tgt and therefore used a HashMap
+    private ArrayList<GameRecord> records;
 
     public AllGamesRecord() {
-        this.records = new HashMap<>();
+        this.records = new ArrayList<>();
     }
 
-    public void add(GameRecord gameRecord) { // adds a GameRecord to the AllGamesRecord
-        int score = gameRecord.getScore();
-        String id = gameRecord.getPlayerId();
-        if (checkUser(id)) {
-            records.get(id).add(score);
-        } else {
-            records.put(id, new ArrayList<Integer>());
-            records.get(id).add(score);
-        }
+    // adds a GameRecord to the AllGamesRecord
+    public void add(GameRecord gameRecord) {
+        records.add(gameRecord);
     }
 
-    public boolean checkUser(String id) { // checks if a user already exists
-        if (records.containsKey(id)) {
-            return true;
+    // checks if a user already exists in the records
+    public boolean checkUser(String playerId) {
+        for (GameRecord record : records) {
+            if (record.getPlayerId().equals(playerId)) {
+                return true;
+            }
         }
         return false;
     }
 
-
-
-    public int average() {// returns the average score for all games added to the record
+    // returns the average score for all games added to the record as an integer
+    public int average() {
         int totalScore = 0;
-        int totalGames = 0;
-        for (ArrayList<Integer> scoreLst : records.values()) {
-            for (Integer score : scoreLst) {
-                totalScore += score;
-                totalGames++;
+        int totalGames = records.size();
+
+        for (GameRecord record : records) {
+            totalScore += record.getScore();
+        }
+        if (totalGames == 0) {
+            return 0;
+        }
+        return totalScore / totalGames;
+    }
+
+    // returns the average score for all games of a particular player as an integer
+    public int average(String playerId) {
+        int totalScore = 0;
+        int count = 0;
+        for (GameRecord record : records) {
+            if (record.getPlayerId().equals(playerId)) {
+                totalScore += record.getScore();
+                count += 1;
             }
         }
-        return totalScore / totalGames;
-    }
-
-    public int average(String id) {// returns the average score for all games of a particular player
-        int totalScore = 0;
-        int totalGames = 0;
-        ArrayList<Integer> scoreLst = records.get(id);
-        for (Integer score : scoreLst) {
-            totalScore += score;
-            totalGames++;
+        if (count == 0) {
+            return 0;
         }
-        return totalScore / totalGames;
+        return totalScore / count;
     }
 
-    public ArrayList<Integer> highGameList(int n) {// returns a sorted list of the top n scores including player and score. This method should use the Collections class to sort the game instances.
-        List<GameRecord> sorted = new ArrayList<>();
-        Collections.sort(sorted, Collections.reverseOrder());
+    // returns the top n highest scores from all game records
+    public ArrayList<Integer> highGameList(int n) {
+        ArrayList<GameRecord> sortedRecords = new ArrayList<>(records);
+        Collections.sort(sortedRecords, new ScoreComparator());
+
+        int endIndex = Math.min(n, sortedRecords.size());
         ArrayList<Integer> topScores = new ArrayList<>();
-        for (int i = 0; i < Math.min(n, sorted.size()); i++) {
-            topScores.add(sorted.get(i).getScore());
+
+        for (int i = 0; i < endIndex; i++) {
+            topScores.add(sortedRecords.get(i).getScore());
+        }
+
+        return topScores;
+    }
+
+    // returns the top n highest scores for the specified player
+    public ArrayList<Integer> highGameList(String playerId, int n) {
+        ArrayList<GameRecord> playerRecords = new ArrayList<>();
+
+        for (GameRecord record : records) {
+            if (record.getPlayerId().equals(playerId)) {
+                playerRecords.add(record);
+            }
+        }
+        Collections.sort(playerRecords, new ScoreComparator());
+        int endIndex = Math.min(n, playerRecords.size());
+        ArrayList<Integer> topScores = new ArrayList<>();
+
+        for (int i = 0; i < endIndex; i++) {
+            topScores.add(playerRecords.get(i).getScore());
         }
         return topScores;
     }
 
-    public ArrayList<Integer> highGameList(String id, Integer n) {// returns a sorted list of the top n scores for the specified player.. This method should use the Collections class to sort the game instances.
-        ArrayList<Integer> topScores = new ArrayList<>();
-        ArrayList<Integer> scoreLst = records.get(id);
-        for (int i = 0; i < Math.min(n, scoreLst.size()); i++) {
-            topScores.add(scoreLst.get(i));
+
+    // comparator for sorting by score in descending order
+    private static class ScoreComparator implements java.util.Comparator<GameRecord> {
+        public int compare(GameRecord r1, GameRecord r2) {
+            if (r1.getScore() < r2.getScore()) {
+                return 1;
+            } else if (r1.getScore() > r2.getScore()) {
+                return -1;
+            } else {
+                return 0;
+            }
         }
-        return topScores;
     }
 
+    // returns a string representation
     @Override
     public String toString() {
-        return records.toString();
+        StringBuilder result = new StringBuilder("Results: \n");
+        for (GameRecord record : records) {
+            result.append(record.toString()).append("\n");
+        }
+        return result.toString();
     }
 
+    // checks if two AllGamesRecord objects are equal
     @Override
     public boolean equals(Object obj) {
-        assert (obj instanceof AllGamesRecord);
-        return records.equals(((AllGamesRecord) obj).records);
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        AllGamesRecord other = (AllGamesRecord) obj;
+        return records.equals(other.records);
     }
+
 }

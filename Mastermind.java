@@ -8,6 +8,7 @@ public class Mastermind extends GuessingGame {
 
     public Mastermind(int maxAttempts) { // constructor initializes max attempts and secret code
         super(maxAttempts);
+        this.attempts = 0;
         this.secretCode = generateSecretCode();
         this.score = 0; // initialize score to zero
     }
@@ -41,6 +42,7 @@ public class Mastermind extends GuessingGame {
         int partialMatches = countPartialMatches(guess);
         score = exactMatches; // update score with exact matches count for current guess
         System.out.println(exactMatches + " exact, " + partialMatches + " partial.");
+        System.out.println();
     }
 
     // counts exact matches between guess and secret code
@@ -91,9 +93,9 @@ public class Mastermind extends GuessingGame {
 
     @Override
     public boolean playNext() { // asks if the player wants to play another round
-        System.out.print("Would you like to play another round? Enter 1 as yes ");
-        String response = scanner.nextLine().trim().toLowerCase();
-        return response.equals("yes");
+        System.out.print("Enter 1 to play \n");
+        String response = scanner.nextLine();
+        return response.contains("1");
     }
 
     // main method to initiate mastermind game

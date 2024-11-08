@@ -40,6 +40,7 @@ public abstract class GuessingGame extends Game {
         return scanner.nextLine().trim().toUpperCase();
     }
 
+
     // checks if the game is won
     protected abstract boolean isGameWon();
 

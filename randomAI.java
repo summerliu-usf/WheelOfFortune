@@ -9,8 +9,8 @@ public class randomAI implements WOFPlayer {
     private Random random;
 
     // constructor initializing player ID and random generator
-    public randomAI(String playerId) {
-        this.playerId = playerId;
+    public randomAI() {
+        this.playerId = "randomAI";
         this.random = new Random();
         reset();
     }

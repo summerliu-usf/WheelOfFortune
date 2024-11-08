@@ -1,13 +1,12 @@
 // ai player that guesses letters sequentially from 'a' to 'z'
 public class sequentialAI implements WOFPlayer {
-    private String playerId;
     private int currentIndex;
     private final char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+    private String playerId;
 
     // constructor initializing player ID
-    public sequentialAI(String playerId) {
-        this.playerId = playerId;
-        reset();
+    public sequentialAI() {
+        this.playerId = "sequentialAI";
     }
 
     // returns the next letter in alphabetical order

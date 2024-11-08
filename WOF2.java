@@ -19,6 +19,7 @@ public class WOF2 extends GuessingGame {
     protected ArrayList<String> usedPhrases;
     private String id;
 
+
     public WOF2(int maxAttempts) { // constructor initializes phrase list, scanner, and max attempts
         super(maxAttempts);
         this.scanner = new Scanner(System.in);
@@ -26,10 +27,13 @@ public class WOF2 extends GuessingGame {
         this.usedPhrases = new ArrayList<>();
         this.phraseList = readFile();
         this.id = id;
-        this.chances = 5;
+        this.chances = maxAttempts;
+        this.pastGuesses = "";
+        this.incorrectGuesses = "";
+
     }
 
-    private List<String> readFile() { // reads phrases from a file and returns as a list
+    public List<String> readFile() { // reads phrases from file and returns as a list
         List<String> phrases = new ArrayList<>();
         try {
             phrases = Files.readAllLines(Paths.get("phrases.txt"));
@@ -39,16 +43,10 @@ public class WOF2 extends GuessingGame {
         return phrases;
     }
 
-    private String randomPhrase() { // selects a random phrase from the list, avoiding repeats
-        // get a random phrase from the list, seperated from the read file part
+    public String randomPhrase() { // separated from original randomPhrase so that each call gets new phrase without reading file again
         Random rand = new Random();
-        int r = rand.nextInt(phraseList.size()); // bounded by size of phraseList
-        String phrase = phraseList.get(r);
-        while (usedPhrases.contains(phrase)) { // added check repeat when fetching phrase
-            r = rand.nextInt();
-        }
-        usedPhrases.add(phrase);
-        return phrase;
+        int r = rand.nextInt(phraseList.size()); // safer phrase list selection
+        return phraseList.get(r);
     }
 
     private StringBuilder generateHiddenPhrase(String phrase) { // generates hidden version of the phrase
@@ -65,7 +63,6 @@ public class WOF2 extends GuessingGame {
 
     @Override
     public GameRecord play() { // plays one game and returns a game record
-        printInstructions();
         playGame();
         return new GameRecord(chances, id);
     }
@@ -87,7 +84,7 @@ public class WOF2 extends GuessingGame {
 
     @Override
     public boolean playNext() { // checks if the player wants to play another round
-        System.out.println("Would you like to play another round? Enter 1 for another round");
+        System.out.println("Enter 1 to start");
         String response = scanner.nextLine();
         if (response.indexOf('1') == -1) {
             System.out.println("Sad to see you go :( Here are your results: ");
@@ -98,7 +95,7 @@ public class WOF2 extends GuessingGame {
         System.out.println("Starting a new round...");
         return true;
     }
-    
+
     @Override
     protected boolean isGameWon() { // checks if player has guessed the full phrase
         return secret.toString().equals(phrase);
@@ -114,34 +111,38 @@ public class WOF2 extends GuessingGame {
     }
 
     @Override
-    protected void processGuess(String guess) { // processes a letter guess by player
-        char guessedLetter = guess.charAt(0);
-        if (pastGuesses.indexOf(guessedLetter) != -1) {
-            System.out.println("You've already guessed this one! Try another.");
-            return;
-        }
-        pastGuesses += guessedLetter;
-        boolean correct = false;
-
-        for (int i = 0; i < phrase.length(); i++) {
-            if (phrase.charAt(i) == guessedLetter) {
-                secret.setCharAt(i, guessedLetter);
-                correct = true;
-            }
-        }
-
-        if (correct) {
-            System.out.println("Correct! Current phrase: " + secret);
+    protected void processGuess(String guess) {
+        char g = guess.charAt(0);
+        if (updateGuess(phrase, secret, g)) {
+            System.out.println("Correct!");
+            System.out.println("Current progress: " + secret);
         } else {
             chances--;
-            System.out.println("Incorrect guess. Chances left: " + chances);
+            incorrectGuesses += g;
+            System.out.println("Try again! You have " + chances + " chances left");
+            System.out.println("Your past incorrect guesses: " + incorrectGuesses);
+            System.out.println("Current progress: " + secret);
         }
+    }
+
+    public Boolean updateGuess(String phrase, StringBuilder secret, char guess) {
+        // returns T/F for whether letter is a match and modifies hidden phrase and counts score
+        boolean found = false;
+        for (int i = 0; i < phrase.length(); i++) {
+            if (phrase.charAt(i) == guess || phrase.charAt(i) == Character.toUpperCase(guess)) {
+                secret.setCharAt(i, phrase.charAt(i));
+                found = true;
+            }
+        }
+        return found;
     }
 
 
     @Override
     public void printInstructions() { // prints game instructions for user
         System.out.println("<---- Game Start ---->");
+        phrase = randomPhrase();
+        secret = generateHiddenPhrase(phrase);
         System.out.println("Instructions: This is a hangman-like game with a phrase.");
         System.out.println("Guess one letter at a time. Only the first letter will be recognized.");
         System.out.println("Hidden phrase: " + secret);

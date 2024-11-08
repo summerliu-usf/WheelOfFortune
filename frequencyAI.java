@@ -9,8 +9,8 @@ public class frequencyAI implements WOFPlayer {
     private int currentIndex;
 
     // constructor initializing player ID
-    public frequencyAI(String playerId) {
-        this.playerId = playerId;
+    public frequencyAI() {
+        this.playerId = "frequencyAI";
         reset();
     }
 

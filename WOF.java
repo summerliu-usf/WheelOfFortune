@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
-public abstract class WOF extends Game{ // abstract class WOF which extends game
+public abstract class WOF extends Game { // abstract class WOF which extends game
     protected String phrase;
     protected StringBuilder secret;
     protected String pastGuesses;
@@ -17,18 +17,20 @@ public abstract class WOF extends Game{ // abstract class WOF which extends game
     protected AllGamesRecord allRecords;
     protected ArrayList<String> usedPhrases;
     private String id;
-    private int phraseIndex;
+    protected int phraseIndex;
+    protected int correctGuessNum;
 
     public WOF() { // constructor
-        this.players = players;
+        this.players = new ArrayList<>();
         this.allRecords = new AllGamesRecord();
         this.pastGuesses = "";
         this.chances = 5;
         this.incorrectGuesses = "";
         this.phraseList = readFile();
-        this.id = id;
-        this.usedPhrases = new ArrayList<String>();
+        this.id = "";
+        this.usedPhrases = new ArrayList<>();
         this.phraseIndex = 0;
+        this.correctGuessNum = 0;
     }
 
     public abstract GameRecord play(); // plays one game. To be implemented by subclasses.
@@ -45,11 +47,10 @@ public abstract class WOF extends Game{ // abstract class WOF which extends game
         return phrases;
     }
 
-    public String randomPhrase() { // seperated from original randomPhrase so that each call gets new phrase without reading file again
+    public String randomPhrase() { // separated from original randomPhrase so that each call gets new phrase without reading file again
         Random rand = new Random();
-        int r = rand.nextInt(3); // gets 0, 1, or 2
-        String phrase = phraseList.get(r);
-        return phrase;
+        int r = rand.nextInt(phraseList.size()); // safer phrase list selection
+        return phraseList.get(r);
     }
 
     public StringBuilder generateHiddenPhrase(String phrase) { // generates the hidden phrase
@@ -57,8 +58,7 @@ public abstract class WOF extends Game{ // abstract class WOF which extends game
         for (int i = 0; i < phrase.length(); i++) {
             if (phrase.charAt(i) == ' ') {
                 secret.append(" ");
-            }
-            else {
+            } else {
                 secret.append("*");
             }
         }
@@ -79,41 +79,18 @@ public abstract class WOF extends Game{ // abstract class WOF which extends game
     }
 
     public Boolean updateGuess(String phrase, StringBuilder secret, char guess) {
-        // returns T/F for whether letter is a match and modifies hidden phrase
+        // returns T/F for whether letter is a match and modifies hidden phrase and counts score
         boolean found = false;
         for (int i = 0; i < phrase.length(); i++) {
             if (phrase.charAt(i) == guess || phrase.charAt(i) == Character.toUpperCase(guess)) {
                 secret.setCharAt(i, phrase.charAt(i));
                 found = true;
+                correctGuessNum++;
             }
         }
         return found;
     }
 
-    public AllGamesRecord playAll() { // checks if human or ai player, then plays a set of games and records results.
-        printInstructions();
-        this.phrase = randomPhrase();
-        this.secret = generateHiddenPhrase(phrase);
-        while (!phraseList.isEmpty()) {
-            String phrase = randomPhrase();
-            this.phrase = phrase;
-            this.secret = generateHiddenPhrase(phrase);
-
-            if (players == null || players.isEmpty()) {
-                while (playNext()) {
-                    GameRecord record = play();
-                    allRecords.add(record);
-                }
-            } else {
-                for (WOFPlayer player : players) {
-                    player.reset();
-                    this.secret = generateHiddenPhrase(phrase);
-                    allRecords.add(play());
-                }
-            }
-        }
-        return allRecords;
-    }
 
     // placeholder/demonstration method for main
     private void startGame() {
@@ -121,12 +98,6 @@ public abstract class WOF extends Game{ // abstract class WOF which extends game
         playGame();
     }
 
-    // prints game instructions and the initial hidden phrase
-    public abstract void printInstructions();
-//        System.out.println("<----Game Start---->");
-//        System.out.println("Instructions: This is a hangman-like game but with a sentence.");
-//        System.out.println("Enter 1 letter at a time please! Only the first letter will be recognized.");
-//        System.out.println("Hidden phrase: " + secret);
 
     // game execution
     public void playGame() {
